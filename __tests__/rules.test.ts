@@ -140,7 +140,7 @@ describe("Rule Engine", () => {
     expect(ids).toContain("reblind_rerandomize");
     expect(ids).toContain("nullifier_antireplay");
     expect(ids).toContain("verifier_challenge_nonce");
-    expect(ids).not.toContain("device_binding"); // only recommended, not required
+    expect(ids).toContain("device_binding"); // repeat presentations require device binding
     expect(ids).toContain("offchain_verify");
     expect(output.warnings).toHaveLength(0);
   });

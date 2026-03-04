@@ -75,12 +75,16 @@ export const RULESET: Rule[] = [
   // Conditional: device binding
   {
     id: "device_binding_required",
-    description: "Add device binding when required",
-    predicate: (s) => s.deviceBinding === "required",
+    description: "Add device binding when required or for repeat presentations",
+    predicate: (s) => s.deviceBinding === "required" || s.presentationFrequency === "repeat",
     moduleAdds: ["device_binding"],
     moduleRemovals: [],
-    explanation: () =>
-      "Device binding added: credential presentation is bound to hardware key for possession proof.",
+    explanation: (s) => {
+      if (s.presentationFrequency === "repeat" && s.deviceBinding !== "required") {
+        return "Device binding added: repeat presentations require device binding to prevent credential sharing across sessions.";
+      }
+      return "Device binding added: credential presentation is bound to hardware key for possession proof.";
+    },
   },
   // Verification target rules
   {
