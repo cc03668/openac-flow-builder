@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { SiteNav } from "@/components/SiteNav";
 
 export const metadata: Metadata = {
-  title: "OpenAC Flow Builder",
-  description: "Scenario → Module Graph → Mermaid Flow generator for anonymous credentials",
+  title: "OpenAC Studio — Anonymous Credential Integration Designer",
+  description:
+    "Design, visualize, and analyze anonymous credential flows with interactive module selection, sequence diagrams, and threat modeling.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen">
-        <nav className="border-b bg-white px-6 py-3 flex items-center gap-6">
-          <span className="font-bold text-lg">OpenAC Flow Builder</span>
-          <a href="/scenario" className="text-blue-600 hover:underline text-sm">
-            Scenario (MVP1)
-          </a>
-          <a href="/canvas" className="text-blue-600 hover:underline text-sm">
-            Canvas (MVP3)
-          </a>
-        </nav>
-        <main className="p-6">{children}</main>
+      <body className="min-h-screen flex flex-col">
+        <TooltipProvider delayDuration={300}>
+          <SiteNav />
+          <main className="flex-1">{children}</main>
+          <footer className="border-t bg-white py-6 text-center text-xs text-gray-400">
+            OpenAC Studio — a checklist-based design tool, not a formal security proof.
+          </footer>
+        </TooltipProvider>
       </body>
     </html>
   );
