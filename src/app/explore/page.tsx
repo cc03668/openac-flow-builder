@@ -274,7 +274,7 @@ function ExploreContent() {
                     <p className="text-sm font-medium truncate">{mod.title}</p>
                     <Plus className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                   </div>
-                  <p className="text-xs text-gray-500 truncate">{mod.description}</p>
+                  <p className="text-xs text-gray-500 line-clamp-2">{mod.description}</p>
                 </button>
               ))}
               {palette.length === 0 && (
@@ -344,6 +344,11 @@ function ExploreContent() {
                           </button>
                         </div>
                       </div>
+                      <p className="text-xs text-gray-500 mb-3">
+                        {diagramLevel === "high_level"
+                          ? "Conceptual overview of actors and steps — suited for stakeholders and documentation."
+                          : "Cryptographic operations with mathematical notation — suited for implementers and cryptographers."}
+                      </p>
                       <MermaidRenderer chart={diagram.mermaid} className="max-h-[40vh]" />
                     </CardContent>
                   </Card>
