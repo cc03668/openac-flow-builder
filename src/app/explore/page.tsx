@@ -60,7 +60,7 @@ function SortableModuleItem({ id, onRemove }: { id: string; onRemove: () => void
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 border rounded-lg p-2.5 bg-blue-50 border-blue-200 group"
+      className="flex items-center gap-2 border rounded-lg p-2.5 bg-blue-50 border-blue-200 group/item"
     >
       <button
         {...attributes}
@@ -71,7 +71,7 @@ function SortableModuleItem({ id, onRemove }: { id: string; onRemove: () => void
       </button>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{mod.title}</p>
-        <p className="text-xs text-gray-500 truncate">{mod.description}</p>
+        <p className="text-xs text-gray-500 line-clamp-1 group-hover/item:line-clamp-none">{mod.description}</p>
       </div>
       <button
         onClick={onRemove}
@@ -267,14 +267,14 @@ function ExploreContent() {
               {palette.map((mod) => (
                 <button
                   key={mod.id}
-                  className="w-full text-left border rounded-lg p-2.5 bg-white hover:border-blue-300 hover:bg-blue-50/50 transition-colors"
+                  className="group/pal w-full text-left border rounded-lg p-2.5 bg-white hover:border-blue-300 hover:bg-blue-50/50 transition-colors"
                   onClick={() => addModule(mod.id)}
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium truncate">{mod.title}</p>
                     <Plus className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                   </div>
-                  <p className="text-xs text-gray-500 line-clamp-2">{mod.description}</p>
+                  <p className="text-xs text-gray-500 line-clamp-2 group-hover/pal:line-clamp-none">{mod.description}</p>
                 </button>
               ))}
               {palette.length === 0 && (
