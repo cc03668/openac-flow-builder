@@ -7,11 +7,19 @@ import type { DiagramLevel, DiagramOutput } from "@/lib/diagram/types";
 export interface PrivacyDeduction {
   amount: number;
   reason: string;
+  fix: string;
+  moduleToAdd: string;
+}
+
+export interface PrivacyEarned {
+  amount: number;
+  reason: string;
 }
 
 export interface PrivacyMeterResult {
   score: number;
   deductions: PrivacyDeduction[];
+  earned: PrivacyEarned[];
 }
 
 export interface WarningItem {
@@ -72,7 +80,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   addModule: (id) => {
     const state = get();
     if (state.canvasModuleIds.includes(id)) return;
-    const newIds = [...state.canvasModuleIds, id];
+    let newIds = [...state.canvasModuleIds, id];
+    // Adding dual_verify_planB removes individual verify modules
+    if (id === "dual_verify_planB") {
+      newIds = newIds.filter((m) => m !== "offchain_verify" && m !== "onchain_verify");
+    }
+    // Adding individual verify module removes dual_verify_planB
+    if (id === "offchain_verify" || id === "onchain_verify") {
+      newIds = newIds.filter((m) => m !== "dual_verify_planB");
+    }
     set({
       canvasModuleIds: newIds,
       diagram: regenerateDiagram(newIds, state.diagramLevel),
@@ -160,30 +176,56 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const state = get();
     const ids = new Set(state.canvasModuleIds);
     const deductions: PrivacyDeduction[] = [];
+    const earned: PrivacyEarned[] = [];
 
-    if (state.unlinkabilityGoal !== "none" && !ids.has("reblind_rerandomize")) {
-      deductions.push({
-        amount: 40,
-        reason: `Unlinkability goal is '${state.unlinkabilityGoal}' but reblind/rerandomize is missing — presentations are linkable.`,
-      });
+    // Unlinkability: only relevant for repeat presentations
+    const unlinkabilityRelevant =
+      state.unlinkabilityGoal !== "none" && state.presentationFrequency === "repeat";
+    if (unlinkabilityRelevant) {
+      if (ids.has("reblind_rerandomize")) {
+        earned.push({ amount: 40, reason: "Unlinkability protected — presentations cannot be linked across sessions." });
+      } else {
+        deductions.push({
+          amount: 40,
+          reason: `Unlinkability goal is '${state.unlinkabilityGoal}' with repeat presentations but reblind/rerandomize is missing — presentations are linkable.`,
+          fix: "Add the Reblind / Rerandomize module to restore this score.",
+          moduleToAdd: "reblind_rerandomize",
+        });
+      }
     }
 
-    if (state.antiReplay !== "none" && !ids.has("verifier_challenge_nonce")) {
-      deductions.push({
-        amount: 25,
-        reason: `Anti-replay is '${state.antiReplay}' but verifier challenge nonce is missing — replay attacks possible.`,
-      });
+    // Anti-replay
+    if (state.antiReplay !== "none") {
+      if (ids.has("verifier_challenge_nonce")) {
+        earned.push({ amount: 25, reason: "Anti-replay protected — verifier challenge nonce prevents proof replay." });
+      } else {
+        deductions.push({
+          amount: 25,
+          reason: `Anti-replay is '${state.antiReplay}' but verifier challenge nonce is missing — replay attacks possible.`,
+          fix: "Add the Verifier Challenge Nonce module to restore this score.",
+          moduleToAdd: "verifier_challenge_nonce",
+        });
+      }
     }
 
-    if (state.deviceBinding === "required" && !ids.has("device_binding")) {
-      deductions.push({
-        amount: 25,
-        reason: "Device binding is required but device binding module is missing — no possession proof.",
-      });
+    // Device binding: only deduct when required AND repeat presentations
+    const deviceBindingRelevant =
+      state.deviceBinding === "required" && state.presentationFrequency === "repeat";
+    if (deviceBindingRelevant) {
+      if (ids.has("device_binding")) {
+        earned.push({ amount: 25, reason: "Device binding active — credential possession is hardware-verified." });
+      } else {
+        deductions.push({
+          amount: 25,
+          reason: "Device binding is required with repeat presentations but device binding module is missing — no possession proof.",
+          fix: "Add the Device Binding module to restore this score.",
+          moduleToAdd: "device_binding",
+        });
+      }
     }
 
     const totalDeduction = deductions.reduce((sum, d) => sum + d.amount, 0);
-    return { score: Math.max(0, 100 - totalDeduction), deductions };
+    return { score: Math.max(0, 100 - totalDeduction), deductions, earned };
   },
 
   getWarnings: () => {
@@ -226,6 +268,14 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   getPaletteModules: () => {
     const state = get();
-    return MODULE_REGISTRY.filter((m) => !state.canvasModuleIds.includes(m.id));
+    const ids = new Set(state.canvasModuleIds);
+    return MODULE_REGISTRY.filter((m) => {
+      if (ids.has(m.id)) return false;
+      // When dual_verify_planB is on canvas, hide individual offchain/onchain modules
+      if (ids.has("dual_verify_planB") && (m.id === "offchain_verify" || m.id === "onchain_verify")) return false;
+      // When either individual verify module is on canvas, hide dual_verify_planB
+      if (m.id === "dual_verify_planB" && (ids.has("offchain_verify") || ids.has("onchain_verify"))) return false;
+      return true;
+    });
   },
 }));

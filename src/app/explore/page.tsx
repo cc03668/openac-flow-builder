@@ -376,13 +376,33 @@ function ExploreContent() {
                         style={{ width: `${privacy.score}%` }}
                       />
                     </div>
+                    {/* Earned points */}
+                    {privacy.earned.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-xs font-medium text-gray-500">Earned:</p>
+                        {privacy.earned.map((e, i) => (
+                          <div key={i} className="flex items-start gap-2 text-xs">
+                            <Badge variant="secondary" className="shrink-0 text-[10px] bg-emerald-100 text-emerald-800">+{e.amount}</Badge>
+                            <span className="text-gray-600">{e.reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {privacy.deductions.length > 0 && (
                       <div className="space-y-1.5">
                         <p className="text-xs font-medium text-gray-500">Deductions:</p>
                         {privacy.deductions.map((d, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs">
-                            <Badge variant="destructive" className="shrink-0 text-[10px]">-{d.amount}</Badge>
-                            <span className="text-gray-600">{d.reason}</span>
+                          <div key={i} className="text-xs space-y-1">
+                            <div className="flex items-start gap-2">
+                              <Badge variant="destructive" className="shrink-0 text-[10px]">-{d.amount}</Badge>
+                              <span className="text-gray-600">{d.reason}</span>
+                            </div>
+                            <button
+                              onClick={() => addModule(d.moduleToAdd)}
+                              className="ml-7 text-blue-600 underline hover:text-blue-800 text-[11px]"
+                            >
+                              {d.fix}
+                            </button>
                           </div>
                         ))}
                       </div>

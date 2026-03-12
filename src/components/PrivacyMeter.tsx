@@ -1,9 +1,11 @@
 "use client";
 
 import type { PrivacyMeterResult } from "@/store/canvasStore";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 interface PrivacyMeterProps {
   result: PrivacyMeterResult;
+  onAddModule?: (moduleId: string) => void;
 }
 
 function scoreColor(score: number): string {
@@ -18,7 +20,7 @@ function scoreLabel(score: number): string {
   return "Poor";
 }
 
-export default function PrivacyMeter({ result }: PrivacyMeterProps) {
+export default function PrivacyMeter({ result, onAddModule }: PrivacyMeterProps) {
   return (
     <div className="border rounded-lg p-4 bg-white">
       <h3 className="font-medium text-sm mb-3">Privacy Meter</h3>
@@ -33,22 +35,55 @@ export default function PrivacyMeter({ result }: PrivacyMeterProps) {
         <span className="text-sm font-bold w-12 text-right">{result.score}</span>
       </div>
 
-      <p className={`text-xs font-medium mb-2 ${result.score >= 80 ? "text-emerald-700" : result.score >= 50 ? "text-yellow-700" : "text-red-700"}`}>
+      <p className={`text-xs font-medium mb-3 ${result.score >= 80 ? "text-emerald-700" : result.score >= 50 ? "text-yellow-700" : "text-red-700"}`}>
         {scoreLabel(result.score)}
       </p>
 
-      {result.deductions.length > 0 && (
-        <div className="space-y-1.5">
-          {result.deductions.map((d, i) => (
-            <div key={i} className="text-xs bg-red-50 border border-red-200 rounded p-2">
-              <span className="font-medium text-red-800">-{d.amount}</span>{" "}
-              <span className="text-red-700">{d.reason}</span>
+      {/* Earned points */}
+      {result.earned.length > 0 && (
+        <div className="space-y-1.5 mb-3">
+          {result.earned.map((e, i) => (
+            <div key={i} className="flex items-start gap-2 text-xs bg-emerald-50 border border-emerald-200 rounded p-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-medium text-emerald-800">+{e.amount}</span>{" "}
+                <span className="text-emerald-700">{e.reason}</span>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {result.deductions.length === 0 && (
+      {/* Deductions with fix hints */}
+      {result.deductions.length > 0 && (
+        <div className="space-y-1.5">
+          {result.deductions.map((d, i) => (
+            <div key={i} className="text-xs bg-red-50 border border-red-200 rounded p-2">
+              <div className="flex items-start gap-2">
+                <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-medium text-red-800">-{d.amount}</span>{" "}
+                  <span className="text-red-700">{d.reason}</span>
+                  <p className="text-red-600 mt-1">
+                    {onAddModule ? (
+                      <button
+                        onClick={() => onAddModule(d.moduleToAdd)}
+                        className="underline hover:text-red-800 transition-colors"
+                      >
+                        {d.fix}
+                      </button>
+                    ) : (
+                      <span>{d.fix}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {result.deductions.length === 0 && result.earned.length === 0 && (
         <p className="text-xs text-emerald-600">No privacy deductions. Configuration looks good.</p>
       )}
     </div>
