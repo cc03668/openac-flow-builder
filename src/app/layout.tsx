@@ -29,9 +29,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <a href="https://github.com/privacy-ethereum/zkspecs/tree/main/specs/5" target="_blank" rel="noopener noreferrer" className="hover:text-gray-800 transition-colors">
                     Forum Implementation Spec
                   </a>
-                  <a href="mailto:nicole@ethereum.org" className="hover:text-gray-800 transition-colors">
-                    Contact
-                  </a>
                 </div>
               </div>
             </div>
